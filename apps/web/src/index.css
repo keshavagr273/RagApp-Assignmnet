@@ -5,6 +5,17 @@
 @tailwind utilities;
 
 :root {
+  /* RGB channels for Tailwind opacity modifiers (e.g. bg-primary/10) */
+  --color-paper-rgb: 246 243 236;
+  --color-surface-rgb: 255 255 255;
+  --color-ink-rgb: 28 27 25;
+  --color-muted-rgb: 107 102 92;
+  --color-hairline-rgb: 221 215 202;
+  --color-primary-rgb: 31 77 58;
+  --color-secondary-rgb: 180 83 42;
+  --color-highlight-rgb: 227 176 75;
+
+  /* Direct hex variables */
   --color-paper: #F6F3EC;
   --color-surface: #FFFFFF;
   --color-ink: #1C1B19;
@@ -16,6 +27,17 @@
 }
 
 .dark {
+  /* Dark RGB channels */
+  --color-paper-rgb: 20 19 18;
+  --color-surface-rgb: 29 28 25;
+  --color-ink-rgb: 242 239 233;
+  --color-muted-rgb: 158 153 142;
+  --color-hairline-rgb: 47 45 41;
+  --color-primary-rgb: 63 126 98;
+  --color-secondary-rgb: 217 105 59;
+  --color-highlight-rgb: 227 176 75;
+
+  /* Dark direct hex variables */
   --color-paper: #141312;
   --color-surface: #1D1C19;
   --color-ink: #F2EFE9;
@@ -26,15 +48,21 @@
   --color-highlight: #E3B04B;
 }
 
+/* Ensure text on primary buttons stays readable white in both light and dark mode */
+.dark .text-surface {
+  color: #FFFFFF;
+}
+
 * {
   box-sizing: border-box;
 }
 
-body {
+html, body {
   background-color: var(--color-paper);
   color: var(--color-ink);
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 /* Custom scrollbars with hairline aesthetic */

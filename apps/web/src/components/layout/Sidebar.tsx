@@ -29,6 +29,10 @@ export const Sidebar: React.FC = () => {
   const setActiveCollection = useUIStore((s) => s.setActiveCollection);
   const activeThreadId = useUIStore((s) => s.activeThreadId);
   const setActiveThread = useUIStore((s) => s.setActiveThread);
+  const activeDocumentId = useUIStore((s) => s.activeDocumentId);
+  const setActiveDocument = useUIStore((s) => s.setActiveDocument);
+  const setViewerOpen = useUIStore((s) => s.setViewerOpen);
+  const setViewerPage = useUIStore((s) => s.setViewerPage);
   const setUploadModalOpen = useUIStore((s) => s.setUploadModalOpen);
   const setElementInspectorDocId = useUIStore((s) => s.setElementInspectorDocId);
   const darkMode = useUIStore((s) => s.darkMode);
@@ -75,6 +79,16 @@ export const Sidebar: React.FC = () => {
     },
     enabled: !!activeCollectionId && collections.length > 0,
   });
+
+  // Auto-select first document if none active
+  React.useEffect(() => {
+    if (!activeDocumentId && documents.length > 0) {
+      const readyDoc = documents.find((d) => d.status === 'ready') || documents[0];
+      if (readyDoc) {
+        setActiveDocument(readyDoc._id);
+      }
+    }
+  }, [documents, activeDocumentId, setActiveDocument]);
 
   // Fetch Threads for active collection
   const { data: threads = [] } = useQuery<ThreadItem[]>({
@@ -269,65 +283,100 @@ export const Sidebar: React.FC = () => {
               <p className="text-xs text-muted font-mono py-2">No documents in this collection.</p>
             ) : (
               <div className="space-y-1.5">
-                {documents.map((doc) => (
-                  <div
-                    key={doc._id}
-                    className="p-2 rounded border border-hairline bg-paper/30 hover:bg-paper/70 transition-colors text-xs group"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-1.5 truncate max-w-[75%]">
-                        <FileText className="w-3.5 h-3.5 text-primary shrink-0" />
-                        <span className="font-mono text-ink truncate" title={doc.originalName}>
-                          {doc.originalName}
+                {documents.map((doc) => {
+                  const isActive = activeDocumentId === doc._id;
+                  return (
+                    <div
+                      key={doc._id}
+                      onClick={() => {
+                        setActiveDocument(doc._id);
+                        setViewerPage(1);
+                        setViewerOpen(true);
+                      }}
+                      className={`p-2 rounded border transition-colors text-xs group cursor-pointer ${
+                        isActive
+                          ? 'border-primary bg-primary/10 text-primary font-medium'
+                          : 'border-hairline bg-paper/30 hover:bg-paper/70 text-ink'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-1.5 truncate max-w-[75%]">
+                          <FileText
+                            className={`w-3.5 h-3.5 shrink-0 ${
+                              isActive ? 'text-primary' : 'text-primary'
+                            }`}
+                          />
+                          <span
+                            className={`font-mono truncate ${
+                              isActive ? 'font-medium text-primary' : 'text-ink'
+                            }`}
+                            title={doc.originalName}
+                          >
+                            {doc.originalName}
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-mono text-muted">
+                          {doc.pageCount ? `${doc.pageCount}p` : ''}
                         </span>
                       </div>
-                      <span className="text-[10px] font-mono text-muted">
-                        {doc.pageCount ? `${doc.pageCount}p` : ''}
-                      </span>
-                    </div>
 
-                    <div className="flex items-center justify-between text-[11px] font-mono">
-                      {doc.status === 'ready' ? (
-                        <span className="text-primary flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3" />
-                          <span>Ready</span>
-                        </span>
-                      ) : doc.status === 'failed' ? (
-                        <span className="text-secondary flex items-center gap-1">
-                          <AlertCircle className="w-3 h-3" />
-                          <span>Failed</span>
-                        </span>
-                      ) : (
-                        <span className="text-muted capitalize skeleton-pulse">{doc.status}...</span>
-                      )}
+                      <div className="flex items-center justify-between text-[11px] font-mono">
+                        {doc.status === 'ready' ? (
+                          <span className="text-primary flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" />
+                            <span>Ready</span>
+                          </span>
+                        ) : doc.status === 'failed' ? (
+                          <span className="text-secondary flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3" />
+                            <span>Failed</span>
+                          </span>
+                        ) : (
+                          <span className="text-muted capitalize skeleton-pulse">
+                            {doc.status}...
+                          </span>
+                        )}
 
-                      {/* Action buttons */}
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => setElementInspectorDocId(doc._id)}
-                          className="p-1 rounded text-muted hover:text-ink hover:bg-hairline"
-                          title="Inspect Extracted Elements"
-                        >
-                          <Layers className="w-3 h-3" />
-                        </button>
-                        <button
-                          onClick={(e) => handleReprocessDocument(doc._id, e)}
-                          className="p-1 rounded text-muted hover:text-ink hover:bg-hairline"
-                          title="Reprocess Document"
-                        >
-                          <RefreshCw className="w-3 h-3" />
-                        </button>
-                        <button
-                          onClick={(e) => handleDeleteDocument(doc._id, e)}
-                          className="p-1 rounded text-muted hover:text-secondary hover:bg-hairline"
-                          title="Delete Document"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
+                        {/* Action buttons */}
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setElementInspectorDocId(doc._id);
+                            }}
+                            className="p-1 rounded text-muted hover:text-ink hover:bg-hairline"
+                            title="Inspect Extracted Elements"
+                          >
+                            <Layers className="w-3 h-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleReprocessDocument(doc._id, e);
+                            }}
+                            className="p-1 rounded text-muted hover:text-ink hover:bg-hairline"
+                            title="Reprocess Document"
+                          >
+                            <RefreshCw className="w-3 h-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteDocument(doc._id, e);
+                            }}
+                            className="p-1 rounded text-muted hover:text-secondary hover:bg-hairline"
+                            title="Delete Document"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -343,11 +392,13 @@ export const Sidebar: React.FC = () => {
 
         <div className="flex items-center gap-1">
           <button
+            type="button"
             onClick={toggleDarkMode}
-            className="p-1.5 rounded text-muted hover:text-ink hover:bg-hairline/40 transition-colors"
-            title="Toggle Theme"
+            className="p-1.5 rounded text-muted hover:text-ink hover:bg-hairline/40 transition-colors cursor-pointer"
+            title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            aria-label={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           >
-            {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            {darkMode ? <Sun className="w-4 h-4 text-highlight" /> : <Moon className="w-4 h-4" />}
           </button>
           <button
             onClick={() => logout()}

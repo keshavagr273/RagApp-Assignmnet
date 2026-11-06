@@ -1,6 +1,26 @@
 import { create } from 'zustand';
 import { Citation } from '../services/api';
 
+const getInitialDarkMode = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  try {
+    const saved = localStorage.getItem('folioq_theme');
+    if (saved) return saved === 'dark';
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  } catch {
+    return false;
+  }
+};
+
+const initialDarkMode = getInitialDarkMode();
+if (typeof document !== 'undefined') {
+  if (initialDarkMode) {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+}
+
 interface UIState {
   activeCollectionId: string | null;
   activeThreadId: string | null;
@@ -20,6 +40,7 @@ interface UIState {
   setViewerOpen: (open: boolean) => void;
   setViewerPage: (page: number) => void;
   toggleDarkMode: () => void;
+  setDarkMode: (dark: boolean) => void;
   setCommandPaletteOpen: (open: boolean) => void;
   setUploadModalOpen: (open: boolean) => void;
   setElementInspectorDocId: (id: string | null) => void;
@@ -32,7 +53,7 @@ export const useUIStore = create<UIState>((set) => ({
   selectedCitation: null,
   viewerOpen: false,
   viewerPage: 1,
-  darkMode: false,
+  darkMode: initialDarkMode,
   commandPaletteOpen: false,
   uploadModalOpen: false,
   elementInspectorDocId: null,
@@ -56,16 +77,35 @@ export const useUIStore = create<UIState>((set) => ({
   toggleDarkMode: () =>
     set((state) => {
       const next = !state.darkMode;
-      if (next) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('folioq_theme', next ? 'dark' : 'light');
+        } catch {}
+        if (next) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
       }
       return { darkMode: next };
+    }),
+
+  setDarkMode: (dark: boolean) =>
+    set(() => {
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('folioq_theme', dark ? 'dark' : 'light');
+        } catch {}
+        if (dark) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
+      return { darkMode: dark };
     }),
 
   setCommandPaletteOpen: (open) => set({ commandPaletteOpen: open }),
   setUploadModalOpen: (open) => set({ uploadModalOpen: open }),
   setElementInspectorDocId: (id) => set({ elementInspectorDocId: id }),
 }));
-

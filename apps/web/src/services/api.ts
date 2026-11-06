@@ -15,10 +15,12 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url?.includes('/auth/')) {
       originalRequest._retry = true;
       try {
-        await axios.post('/api/auth/refresh', {}, { withCredentials: true });
+        await api.post('/auth/refresh');
         return api(originalRequest);
       } catch (_refreshError) {
-        // Refresh failed, let error propagate
+        if (typeof window !== 'undefined' && window.location.pathname.startsWith('/app')) {
+          window.location.href = '/login';
+        }
       }
     }
     return Promise.reject(error);

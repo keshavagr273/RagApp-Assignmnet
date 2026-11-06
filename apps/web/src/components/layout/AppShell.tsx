@@ -12,6 +12,8 @@ import { PanelRightClose, PanelRightOpen, UploadCloud } from 'lucide-react';
 
 export const AppShell: React.FC = () => {
   const activeCollectionId = useUIStore((s) => s.activeCollectionId);
+  const activeDocumentId = useUIStore((s) => s.activeDocumentId);
+  const setActiveDocument = useUIStore((s) => s.setActiveDocument);
   const viewerOpen = useUIStore((s) => s.viewerOpen);
   const setViewerOpen = useUIStore((s) => s.setViewerOpen);
   const setUploadModalOpen = useUIStore((s) => s.setUploadModalOpen);
@@ -56,8 +58,14 @@ export const AppShell: React.FC = () => {
             </button>
 
             <button
-              onClick={() => setViewerOpen(!viewerOpen)}
-              className="p-1.5 rounded border border-hairline text-muted hover:text-ink hover:bg-paper transition-colors"
+              type="button"
+              onClick={() => {
+                if (!viewerOpen && !activeDocumentId && activeCollection?.documentIds?.length) {
+                  setActiveDocument(activeCollection.documentIds[0]);
+                }
+                setViewerOpen(!viewerOpen);
+              }}
+              className="p-1.5 rounded border border-hairline text-muted hover:text-ink hover:bg-paper transition-colors cursor-pointer"
               title={viewerOpen ? 'Collapse Document Panel' : 'Expand Document Panel'}
             >
               {viewerOpen ? <PanelRightClose className="w-4 h-4" /> : <PanelRightOpen className="w-4 h-4" />}

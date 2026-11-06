@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { MessageItem } from '../../services/api';
 import { useUIStore } from '../../store/uiStore';
 import { TableAnswer } from './TableAnswer';
 import { ChartAnswer } from './ChartAnswer';
-import { ChevronDown, ChevronRight, FileText, ArrowRight } from 'lucide-react';
+import { parseMarkdownBlocks } from './markdownParser';
+import { InlineContent } from './InlineContent';
+import { ChevronDown, ChevronRight, ArrowRight } from 'lucide-react';
 
 interface ChatMessageProps {
   message: MessageItem;
@@ -24,70 +26,41 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onSendFollowu
     );
   }
 
-  // Parse inline citation pills from markdown text e.g. [Document Name, p.1]
-  const renderContentWithCitations = (text: string) => {
-    const parts = text.split(/(\[[^\]]+,\s*p\.\d+\])/g);
+  const handleOpenCitation = (docTitle: string, pageNum: number) => {
+    const matchingCite = message.citations?.find(
+      (c) =>
+        c.page === pageNum ||
+        (docTitle && c.documentTitle.toLowerCase().includes(docTitle.toLowerCase()))
+    );
 
-    return parts.map((part, i) => {
-      const match = part.match(/\[([^\]]+),\s*p\.(\d+)\]/);
-      if (match) {
-        const docTitle = match[1].trim();
-        const pageNum = parseInt(match[2], 10);
-        const matchingCite = message.citations?.find(
-          (c) => c.page === pageNum || c.documentTitle.toLowerCase().includes(docTitle.toLowerCase())
-        );
-
-        return (
-          <button
-            key={i}
-            onClick={() => {
-              if (matchingCite) {
-                openCitationInViewer(matchingCite);
-              } else {
-                openCitationInViewer({
-                  id: `cite-${pageNum}`,
-                  documentId: message.citations?.[0]?.documentId || '',
-                  documentTitle: docTitle,
-                  page: pageNum,
-                  chunkId: '',
-                  elementType: 'paragraph',
-                  excerpt: `Page ${pageNum} source reference`,
-                });
-              }
-            }}
-            className="inline-flex items-center gap-1 mx-1 px-1.5 py-0.5 text-xs font-mono font-medium rounded border border-hairline bg-highlight/20 text-ink hover:bg-highlight/40 transition-colors cursor-pointer"
-            title={`Open ${docTitle} at page ${pageNum}`}
-          >
-            <FileText className="w-3 h-3 text-primary inline" />
-            <span>{docTitle.length > 18 ? docTitle.slice(0, 15) + '…' : docTitle} · p.{pageNum}</span>
-          </button>
-        );
-      }
-
-      // Format markdown bold & linebreaks
-      const lines = part.split('\n');
-      return (
-        <span key={i}>
-          {lines.map((line, lIdx) => (
-            <React.Fragment key={lIdx}>
-              {lIdx > 0 && <br />}
-              {line.split(/(\*\*[^*]+\*\*)/).map((segment, sIdx) => {
-                if (segment.startsWith('**') && segment.endsWith('**')) {
-                  return <strong key={sIdx} className="font-semibold text-ink">{segment.slice(2, -2)}</strong>;
-                }
-                return segment;
-              })}
-            </React.Fragment>
-          ))}
-        </span>
-      );
-    });
+    if (matchingCite) {
+      openCitationInViewer(matchingCite);
+    } else {
+      openCitationInViewer({
+        id: `cite-${pageNum}-${Date.now()}`,
+        documentId: message.citations?.[0]?.documentId || '',
+        documentTitle: docTitle || message.citations?.[0]?.documentTitle || 'Document',
+        page: pageNum,
+        chunkId: '',
+        elementType: 'paragraph',
+        excerpt: `Page ${pageNum} source reference`,
+      });
+    }
   };
+
+  const parsedBlocks = useMemo(() => {
+    return parseMarkdownBlocks(message.content);
+  }, [message.content]);
+
+  const hasMarkdownTable = parsedBlocks.some((b) => b.type === 'table');
 
   return (
     <div className="my-6 max-w-3xl">
+      {/* FolioQ Header Badge */}
       <div className="flex items-center gap-2 mb-2">
-        <span className="font-display font-medium text-xs text-primary uppercase tracking-wider">FolioQ</span>
+        <span className="font-display font-medium text-xs text-primary uppercase tracking-wider">
+          FolioQ
+        </span>
         {message.confidence && (
           <span
             className={`text-[11px] font-mono px-1.5 py-0.5 rounded border border-hairline ${
@@ -106,22 +79,158 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onSendFollowu
         )}
       </div>
 
-      <div className="text-sm font-sans text-ink leading-relaxed prose prose-stone max-w-none">
-        {renderContentWithCitations(message.content)}
+      {/* Structured Content Rendering */}
+      <div className="text-sm font-sans text-ink leading-relaxed">
+        {parsedBlocks.map((block, idx) => {
+          if (block.type === 'table') {
+            return (
+              <TableAnswer
+                key={idx}
+                table={{
+                  headers: block.headers,
+                  rows: block.rows,
+                  alignments: block.alignments,
+                  markdown: block.rawMarkdown,
+                }}
+                citations={message.citations}
+                onOpenCitation={handleOpenCitation}
+              />
+            );
+          }
+
+          if (block.type === 'heading') {
+            if (block.level === 1) {
+              return (
+                <h1
+                  key={idx}
+                  className="text-base font-semibold font-display text-ink mt-5 mb-2.5 tracking-tight border-b border-hairline pb-1"
+                >
+                  <InlineContent
+                    text={block.text}
+                    citations={message.citations}
+                    onOpenCitation={handleOpenCitation}
+                  />
+                </h1>
+              );
+            }
+            if (block.level === 2) {
+              return (
+                <h2
+                  key={idx}
+                  className="text-sm font-semibold font-display text-ink mt-4 mb-2 tracking-tight"
+                >
+                  <InlineContent
+                    text={block.text}
+                    citations={message.citations}
+                    onOpenCitation={handleOpenCitation}
+                  />
+                </h2>
+              );
+            }
+            return (
+              <h3
+                key={idx}
+                className="text-xs font-semibold font-display text-ink uppercase tracking-wider mt-4 mb-2 text-primary"
+              >
+                <InlineContent
+                  text={block.text}
+                  citations={message.citations}
+                  onOpenCitation={handleOpenCitation}
+                />
+              </h3>
+            );
+          }
+
+          if (block.type === 'list') {
+            if (block.ordered) {
+              return (
+                <ol key={idx} className="my-2.5 space-y-1.5 list-none pl-0">
+                  {block.items.map((item, itemIdx) => (
+                    <li key={itemIdx} className="flex items-start gap-2 text-sm text-ink leading-relaxed">
+                      <span className="font-mono text-xs font-semibold text-primary shrink-0 mt-0.5">
+                        {itemIdx + 1}.
+                      </span>
+                      <span className="flex-1">
+                        <InlineContent
+                          text={item}
+                          citations={message.citations}
+                          onOpenCitation={handleOpenCitation}
+                        />
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              );
+            }
+
+            return (
+              <ul key={idx} className="my-2.5 space-y-1.5 list-none pl-0">
+                {block.items.map((item, itemIdx) => (
+                  <li key={itemIdx} className="flex items-start gap-2 text-sm text-ink leading-relaxed">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
+                    <span className="flex-1">
+                      <InlineContent
+                        text={item}
+                        citations={message.citations}
+                        onOpenCitation={handleOpenCitation}
+                      />
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            );
+          }
+
+          if (block.type === 'code') {
+            return (
+              <div key={idx} className="my-3 border border-hairline rounded bg-paper/60 overflow-hidden">
+                {block.language && (
+                  <div className="px-3 py-1 bg-paper border-b border-hairline text-[11px] font-mono text-muted">
+                    {block.language}
+                  </div>
+                )}
+                <pre className="p-3 text-xs font-mono text-ink overflow-x-auto">
+                  <code>{block.content}</code>
+                </pre>
+              </div>
+            );
+          }
+
+          // Paragraph
+          return (
+            <p key={idx} className="my-2.5 text-sm font-sans text-ink leading-relaxed">
+              <InlineContent
+                text={block.text}
+                citations={message.citations}
+                onOpenCitation={handleOpenCitation}
+              />
+            </p>
+          );
+        })}
       </div>
 
-      {/* Render Structured Tables */}
-      {message.tables && message.tables.map((t, idx) => <TableAnswer key={idx} table={t} />)}
+      {/* Render Structured Tables (if not already parsed from markdown) */}
+      {!hasMarkdownTable &&
+        message.tables &&
+        message.tables.map((t, idx) => (
+          <TableAnswer
+            key={`struct-${idx}`}
+            table={t}
+            citations={message.citations}
+            onOpenCitation={handleOpenCitation}
+          />
+        ))}
 
       {/* Render Structured Charts */}
       {message.charts && message.charts.map((c, idx) => <ChartAnswer key={idx} chart={c} />)}
 
       {/* Collapsible Sources Accordion */}
       {message.citations && message.citations.length > 0 && (
-        <div className="mt-4 border border-hairline rounded bg-paper/60">
+        <div className="mt-4 border border-hairline rounded-md bg-paper/60 overflow-hidden">
           <button
+            type="button"
             onClick={() => setSourcesOpen(!sourcesOpen)}
-            className="w-full flex items-center justify-between px-3 py-2 text-xs font-mono text-muted hover:text-ink transition-colors"
+            className="w-full flex items-center justify-between px-3.5 py-2 text-xs font-mono text-muted hover:text-ink transition-colors cursor-pointer"
           >
             <span className="font-medium text-ink">Grounding Sources ({message.citations.length})</span>
             {sourcesOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
@@ -133,11 +242,13 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onSendFollowu
                 <div
                   key={idx}
                   onClick={() => openCitationInViewer(cite)}
-                  className="p-2 border border-hairline rounded hover:bg-paper cursor-pointer transition-colors"
+                  className="p-2.5 border border-hairline rounded hover:bg-paper cursor-pointer transition-colors"
                 >
                   <div className="flex items-center justify-between text-xs font-mono mb-1">
                     <span className="font-medium text-primary">{cite.documentTitle}</span>
-                    <span className="text-muted">Page {cite.page} ({cite.elementType})</span>
+                    <span className="text-muted">
+                      Page {cite.page} ({cite.elementType})
+                    </span>
                   </div>
                   <p className="text-xs text-muted line-clamp-2">{cite.excerpt}</p>
                 </div>
@@ -149,15 +260,16 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onSendFollowu
 
       {/* Suggested Follow-ups */}
       {message.followups && message.followups.length > 0 && onSendFollowup && (
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-4 flex flex-wrap gap-2">
           {message.followups.map((fText, idx) => (
             <button
               key={idx}
+              type="button"
               onClick={() => onSendFollowup(fText)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-sans rounded-full border border-hairline bg-surface hover:bg-paper text-muted hover:text-ink transition-colors text-left"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-sans rounded-full border border-hairline bg-surface hover:bg-paper text-muted hover:text-ink transition-colors text-left cursor-pointer"
             >
               <span>{fText}</span>
-              <ArrowRight className="w-3 h-3" />
+              <ArrowRight className="w-3 h-3 text-primary" />
             </button>
           ))}
         </div>

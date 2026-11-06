@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useUIStore } from '../../store/uiStore';
 import { api, Collection, ThreadItem } from '../../services/api';
-import { Search, Folder, MessageSquare, UploadCloud, X } from 'lucide-react';
+import { Search, Folder, MessageSquare, UploadCloud, X, Moon, Sun } from 'lucide-react';
 
 export const CommandPalette: React.FC = () => {
   const open = useUIStore((s) => s.commandPaletteOpen);
@@ -10,6 +10,8 @@ export const CommandPalette: React.FC = () => {
   const setActiveCollection = useUIStore((s) => s.setActiveCollection);
   const setActiveThread = useUIStore((s) => s.setActiveThread);
   const setUploadModalOpen = useUIStore((s) => s.setUploadModalOpen);
+  const darkMode = useUIStore((s) => s.darkMode);
+  const toggleDarkMode = useUIStore((s) => s.toggleDarkMode);
 
   const [query, setQuery] = useState('');
 
@@ -92,6 +94,16 @@ export const CommandPalette: React.FC = () => {
             >
               <UploadCloud className="w-4 h-4 text-primary" />
               <span>Upload New PDF Documents</span>
+            </button>
+            <button
+              onClick={() => {
+                toggleDarkMode();
+                setOpen(false);
+              }}
+              className="w-full text-left px-3 py-2 rounded text-xs flex items-center gap-2 hover:bg-paper text-ink transition-colors cursor-pointer"
+            >
+              {darkMode ? <Sun className="w-4 h-4 text-highlight" /> : <Moon className="w-4 h-4 text-primary" />}
+              <span>{darkMode ? 'Switch to Light Theme' : 'Switch to Dark Theme'}</span>
             </button>
           </div>
 

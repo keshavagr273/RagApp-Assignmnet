@@ -21,21 +21,22 @@ const LoginSchema = z.object({
 });
 
 function issueTokens(userId: string, res: Response): void {
-  const accessToken = jwt.sign({ userId }, env.JWT_ACCESS_SECRET, { expiresIn: '15m' });
+  const accessToken = jwt.sign({ userId }, env.JWT_ACCESS_SECRET, { expiresIn: '24h' });
   const refreshToken = jwt.sign({ userId }, env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
 
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
     secure: env.NODE_ENV === 'production',
     sameSite: 'lax',
-    maxAge: 15 * 60 * 1000,
+    maxAge: 24 * 60 * 60 * 1000,
+    path: '/',
   });
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
     secure: env.NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000,
-    path: '/api/auth/refresh',
+    path: '/',
   });
 }
 
@@ -66,8 +67,8 @@ router.post('/login', async (req: Request, res: Response) => {
 });
 
 router.post('/logout', (_req: Request, res: Response) => {
-  res.clearCookie('accessToken');
-  res.clearCookie('refreshToken', { path: '/api/auth/refresh' });
+  res.clearCookie('accessToken', { path: '/' });
+  res.clearCookie('refreshToken', { path: '/' });
   res.json({ ok: true });
 });
 

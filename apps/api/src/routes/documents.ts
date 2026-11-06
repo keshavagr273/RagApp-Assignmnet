@@ -6,6 +6,7 @@ import { requireAuth, AuthRequest } from '../middleware/auth.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { getStorage } from '../storage/index.js';
 import { getIngestionQueue } from '../queue/index.js';
+import { stage1RenderPages } from '../ingestion/stage1-render.js';
 import { logger } from '../lib/logger.js';
 import fs from 'fs';
 
@@ -96,8 +97,21 @@ router.get('/:id/pages/:n/image', async (req: Request, res: Response) => {
     const buffer = await storage.getFile(imageKey);
     res.setHeader('Content-Type', 'image/png');
     res.setHeader('Cache-Control', 'public, max-age=86400');
-    res.send(buffer);
-  } catch (err: any) {
+    return res.send(buffer);
+  } catch (_err: any) {
+    try {
+      // On-demand rendering fallback from original PDF
+      const pdfBuffer = await storage.getFile(doc.storageKey);
+      const rendered = await stage1RenderPages(doc._id.toString(), pdfBuffer);
+      const matchedPage = rendered.find((p) => p.pageNumber === pageNum);
+      if (matchedPage) {
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+        return res.send(matchedPage.imageBuffer);
+      }
+    } catch (fallbackErr: any) {
+      logger.error({ error: fallbackErr.message }, 'Failed on-demand page render');
+    }
     throw new AppError(404, `Page ${pageNum} image not found`);
   }
 });

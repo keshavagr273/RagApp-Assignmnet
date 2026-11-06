@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useUIStore } from '../../store/uiStore';
 import {
   FileText,
   Layers,
@@ -9,11 +10,15 @@ import {
   ChevronDown,
   ArrowRight,
   ShieldCheck,
+  Moon,
+  Sun,
 } from 'lucide-react';
 
 export const LandingPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'table' | 'chart' | 'figure'>('table');
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
+  const darkMode = useUIStore((s) => s.darkMode);
+  const toggleDarkMode = useUIStore((s) => s.toggleDarkMode);
 
   return (
     <div className="min-h-screen bg-paper text-ink font-sans selection:bg-highlight/30">
@@ -41,6 +46,15 @@ export const LandingPage: React.FC = () => {
               FAQ
             </a>
             <div className="h-4 w-px bg-hairline" />
+            <button
+              type="button"
+              onClick={toggleDarkMode}
+              className="p-1.5 rounded text-muted hover:text-ink hover:bg-hairline/40 transition-colors cursor-pointer"
+              title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              aria-label={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {darkMode ? <Sun className="w-4 h-4 text-highlight" /> : <Moon className="w-4 h-4" />}
+            </button>
             <Link to="/login" className="text-ink font-medium hover:text-primary transition-colors">
               Sign In
             </Link>

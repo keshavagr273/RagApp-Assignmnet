@@ -1,18 +1,19 @@
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
+  darkMode: 'class',
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {
-        paper: '#F6F3EC',
-        surface: '#FFFFFF',
-        ink: '#1C1B19',
-        muted: '#6B665C',
-        hairline: '#DDD7CA',
-        primary: '#1F4D3A',
-        secondary: '#B4532A',
-        highlight: '#E3B04B',
+        paper: 'rgb(var(--color-paper-rgb) / <alpha-value>)',
+        surface: 'rgb(var(--color-surface-rgb) / <alpha-value>)',
+        ink: 'rgb(var(--color-ink-rgb) / <alpha-value>)',
+        muted: 'rgb(var(--color-muted-rgb) / <alpha-value>)',
+        hairline: 'rgb(var(--color-hairline-rgb) / <alpha-value>)',
+        primary: 'rgb(var(--color-primary-rgb) / <alpha-value>)',
+        secondary: 'rgb(var(--color-secondary-rgb) / <alpha-value>)',
+        highlight: 'rgb(var(--color-highlight-rgb) / <alpha-value>)',
         // chart palette
         'chart-1': '#1F4D3A',
         'chart-2': '#B4532A',
