@@ -56,8 +56,8 @@ async function start() {
     await processDocumentIngestion(data.documentId);
   });
 
-  app.listen(env.PORT, () => {
-    logger.info({ port: env.PORT }, 'FolioQ API started and ready');
+  app.listen(env.PORT, '0.0.0.0', () => {
+    logger.info({ port: env.PORT, host: '0.0.0.0' }, 'FolioQ API started and ready');
   });
 }
 
