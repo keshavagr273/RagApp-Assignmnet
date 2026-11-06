@@ -71,14 +71,7 @@ router.get('/:id/file', async (req: Request, res: Response) => {
 
   const storage = getStorage();
   try {
-    let buffer: Buffer;
-    if (storage.getFilePath && fs.existsSync(storage.getFilePath(doc.filename))) {
-      buffer = await storage.getFile(doc.filename);
-    } else if (fs.existsSync(doc.storageKey)) {
-      buffer = await fs.promises.readFile(doc.storageKey);
-    } else {
-      buffer = await storage.getFile(doc.filename);
-    }
+    const buffer = await storage.getFile(doc.storageKey);
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `inline; filename="${doc.originalName}"`);

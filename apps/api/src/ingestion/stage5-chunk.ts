@@ -84,13 +84,15 @@ export function stage5SemanticChunking(
 
       const tableCaption = el.caption ? `Caption: ${el.caption}\n` : '';
       const tableUnits = el.units ? `Units: ${el.units}\n` : '';
-      const rawText = `${tableCaption}${tableUnits}${el.markdown}`.trim();
+      const headers = normalizedHeaders(el.headers);
+      const markdown = tableMarkdown(headers, el.rows, el.markdown);
+      const rawText = `${tableCaption}${tableUnits}${markdown}`.trim();
 
       // If table is very large (> 60 rows), split into row groups repeating headers
       const rows = el.rows || [];
       if (rows.length > 50) {
         const batchSize = 35;
-        const headerRow = el.headers[0] || [];
+        const headerRow = headers;
         const headerMd = `| ${headerRow.join(' | ')} |\n| ${headerRow.map(() => '---').join(' | ')} |`;
 
         for (let r = 0; r < rows.length; r += batchSize) {
@@ -221,8 +223,8 @@ export function stage5SemanticChunking(
       flushParagraphs();
       // Headings update headingPath and don't need isolated chunks unless long
     } else if (el.type === 'paragraph' || el.type === 'list') {
-      const textLen = el.type === 'paragraph' ? el.text.length : el.items.join(' ').length;
-      const tokens = estimateTokens(textLen.toString());
+      const sourceText = el.type === 'paragraph' ? el.text : el.items.join(' ');
+      const tokens = estimateTokens(sourceText);
 
       if (pendingTokens + tokens > 500) {
         flushParagraphs();
@@ -240,4 +242,18 @@ export function stage5SemanticChunking(
 
   logger.info({ documentId, totalChunks: chunks.length }, 'Stage 5 complete: Prepared chunks');
   return chunks;
+}
+
+function tableMarkdown(headers: string[], rows: string[][], suppliedMarkdown: string): string {
+  if (suppliedMarkdown.trim()) return suppliedMarkdown.trim();
+  if (headers.length === 0) return rows.map((row) => row.join(' | ')).join('\n');
+  const header = `| ${headers.join(' | ')} |`;
+  const separator = `| ${headers.map(() => '---').join(' | ')} |`;
+  const body = rows.map((row) => `| ${row.join(' | ')} |`).join('\n');
+  return [header, separator, body].filter(Boolean).join('\n');
+}
+
+function normalizedHeaders(headers: unknown): string[] {
+  if (!Array.isArray(headers)) return [];
+  return headers.flat(Infinity).filter((value): value is string => typeof value === 'string');
 }

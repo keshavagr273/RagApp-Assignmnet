@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { Thread } from '../models/Thread.js';
 import { Message } from '../models/Message.js';
+import { Collection } from '../models/Collection.js';
 import { requireAuth, AuthRequest } from '../middleware/auth.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { streamAnswer } from '../rag/answering.service.js';
@@ -28,6 +29,8 @@ router.post('/', async (req: Request, res: Response) => {
       title: z.string().optional(),
     })
     .parse(req.body);
+  const collection = await Collection.findOne({ _id: body.collectionId, userId });
+  if (!collection) throw new AppError(404, 'Collection not found');
   const thread = await Thread.create({ userId, ...body, title: body.title ?? 'New Thread' });
   res.status(201).json({ thread });
 });

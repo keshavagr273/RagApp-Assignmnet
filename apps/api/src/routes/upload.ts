@@ -10,6 +10,7 @@ import { AppError } from '../middleware/errorHandler.js';
 import { env } from '../lib/env.js';
 import { logger } from '../lib/logger.js';
 import { getIngestionQueue } from '../queue/index.js';
+import { getStorage } from '../storage/index.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -50,6 +51,7 @@ router.post(
 
     const documents = [];
     const queue = getIngestionQueue();
+    const documentStorage = getStorage();
 
     for (const file of files) {
       // Compute SHA-256
@@ -82,9 +84,18 @@ router.post(
         mimeType: file.mimetype,
         sizeBytes: file.size,
         sha256,
-        storageKey: file.path,
+        // Keep a storage-adapter key rather than a local temporary path so the
+        // ingestion pipeline works for both local disk and S3-backed installs.
+        storageKey: file.filename,
         status: 'queued',
       });
+
+      try {
+        await documentStorage.uploadFile(file.filename, fileBuffer, file.mimetype);
+      } catch (error) {
+        await DocumentModel.deleteOne({ _id: doc._id });
+        throw error;
+      }
 
       // Add to collection
       collection.documentIds.push(doc._id as unknown as import('mongoose').Types.ObjectId);

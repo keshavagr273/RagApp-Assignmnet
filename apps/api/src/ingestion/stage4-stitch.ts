@@ -60,10 +60,10 @@ export function stage4CrossPageStitch(
           const currTable = el;
 
           const sameHeaders =
-            JSON.stringify(prevTable.headers) === JSON.stringify(currTable.headers);
+            headerSignature(prevTable.headers) === headerSignature(currTable.headers);
           const isContinuedMarker =
             (currTable.caption && /continued/i.test(currTable.caption)) ||
-            (prevTable.headers[0] && currTable.rows[0] && prevTable.headers[0].length === currTable.rows[0].length);
+            (tableHeaders(prevTable.headers).length > 0 && currTable.rows[0] && tableHeaders(prevTable.headers).length === currTable.rows[0].length);
 
           if (sameHeaders || isContinuedMarker) {
             logger.info(
@@ -74,7 +74,7 @@ export function stage4CrossPageStitch(
             prevTable.rows.push(...currTable.rows);
 
             // Update markdown
-            const headerRow = prevTable.headers[0] || [];
+            const headerRow = tableHeaders(prevTable.headers);
             const headerMd = `| ${headerRow.join(' | ')} |\n| ${headerRow.map(() => '---').join(' | ')} |`;
             const rowsMd = prevTable.rows.map((r) => `| ${r.join(' | ')} |`).join('\n');
             prevTable.markdown = `${headerMd}\n${rowsMd}`;
@@ -99,5 +99,16 @@ export function stage4CrossPageStitch(
     documentId,
     elements: stitchedElements,
   };
+}
+
+function tableHeaders(headers: unknown): string[] {
+  if (!Array.isArray(headers)) return [];
+  return headers.flat(Infinity).filter((value): value is string => typeof value === 'string');
+}
+
+function headerSignature(headers: unknown): string {
+  return tableHeaders(headers)
+    .map((header) => header.trim().toLowerCase().replace(/\s+/g, ' '))
+    .join('|');
 }
 

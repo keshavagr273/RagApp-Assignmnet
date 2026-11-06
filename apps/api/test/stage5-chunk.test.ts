@@ -72,5 +72,31 @@ describe('Stage 5: Semantic Element Chunking', () => {
     expect(chunks[0].text).toContain('Series "ARR": (2023: 1150), (2024: 1480)');
     expect(chunks[0].text).toContain('Trend Summary: ARR grew from $1150M to $1480M with 46.7% CAGR.');
   });
+
+  it('should generate table markdown and enforce paragraph chunk limits', () => {
+    const longParagraph = 'evidence '.repeat(300);
+    const stitched: StitchedDocument = {
+      documentId: 'doc-regression-1',
+      elements: [
+        {
+          page: 1,
+          headingPath: [],
+          imageRef: 'pages/doc-regression-1/page-1.png',
+          element: {
+            type: 'table',
+            headers: [['Metric', 'Value']],
+            rows: [['Revenue', '370.9']],
+            markdown: '',
+          },
+        },
+        { page: 1, headingPath: [], imageRef: 'pages/doc-regression-1/page-1.png', element: { type: 'paragraph', text: longParagraph } },
+        { page: 2, headingPath: [], imageRef: 'pages/doc-regression-1/page-2.png', element: { type: 'paragraph', text: longParagraph } },
+      ],
+    };
+
+    const chunks = stage5SemanticChunking('doc-regression-1', 'col-1', 'Report.pdf', stitched);
+    expect(chunks[0].rawText).toContain('| Metric | Value |');
+    expect(chunks.filter((chunk) => chunk.elementType === 'paragraph')).toHaveLength(2);
+  });
 });
 

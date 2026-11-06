@@ -22,11 +22,7 @@ export async function processDocumentIngestion(documentId: string): Promise<void
   try {
     // Read PDF buffer
     let pdfBuffer: Buffer;
-    try {
-      pdfBuffer = await storage.getFile(doc.filename);
-    } catch (_e) {
-      pdfBuffer = await storage.getFile(doc.storageKey);
-    }
+    pdfBuffer = await storage.getFile(doc.storageKey);
 
     // Stage 1: Render pages
     await DocumentModel.findByIdAndUpdate(documentId, { status: 'rendering' });

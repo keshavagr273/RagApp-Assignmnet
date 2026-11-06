@@ -52,7 +52,7 @@ export const TableZod = z.object({
   headers: z.union([
     z.array(z.string()),
     z.array(z.array(z.string())).transform((arr) => arr.flat()),
-  ]),
+  ]).transform((headers) => headers.map((header) => header.trim()).filter(Boolean)),
   rows: z.array(z.array(z.union([z.string(), z.number()]).transform((v) => String(v)))),
   markdown: z.string().optional().default(''),
   bbox: BBoxZod,
@@ -159,7 +159,7 @@ const SCHEMA_DESCRIPTION = `
     | { "type": "heading", "level": 1-6, "text": string }
     | { "type": "paragraph", "text": string }
     | { "type": "list", "items": string[], "ordered"?: boolean }
-    | { "type": "table", "caption"?: string, "units"?: string, "headers": string[][], "rows": string[][], "markdown": string }
+    | { "type": "table", "caption"?: string, "units"?: string, "headers": string[] | string[][], "rows": string[][], "markdown": string, "bbox"?: { "x": number, "y": number, "width": number, "height": number } }
     | { "type": "chart", "chartType": "bar"|"line"|"pie"|"scatter"|"area"|"other", "title"?: string, "xAxisLabel"?: string, "xAxisUnit"?: string, "yAxisLabel"?: string, "yAxisUnit"?: string, "series": Array<{ "name": string, "data": Array<{ "x": string|number, "y": number, "label"?: string }>, "unit"?: string }>, "legendEntries"?: string[], "summary": string, "confidence": "high"|"medium"|"low", "estimatedValues"?: boolean }
     | { "type": "figure", "caption"?: string, "description": string, "containedText"?: string }
     | { "type": "equation", "latex": string, "text"?: string }
