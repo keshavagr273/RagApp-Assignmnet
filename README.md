@@ -21,7 +21,6 @@
     <a href="#-what-is-folioq">About</a> · 
     <a href="#-the-problem">The Problem</a> · 
     <a href="#-features">Features</a> · 
-    <a href="#-architecture">Architecture</a> · 
     <a href="#-pipeline-workflow">Pipeline</a> · 
     <a href="#-feature-comparison">Comparison</a> · 
     <a href="#-quick-start">Quick Start</a> · 
@@ -118,32 +117,6 @@ Navigating complex business and technical PDFs with traditional tools or generic
 - **Asynchronous Ingestion Worker**: Background job queue powered by **BullMQ + Redis** with concurrency control, exponential backoff, and in-memory queue fallback for zero-dependency local development.
 - **Secure Authentication**: JWT access and refresh tokens stored strictly in `httpOnly` secure cookies.
 - **Storage Abstraction Layer**: Pluggable storage adapters (`LocalStorageAdapter` for local development, `S3StorageAdapter` for AWS S3 / Cloudflare R2).
-
----
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          FolioQ Web (React 18 + Vite)                       │
-│  3-Pane Resizable Shell · In-App PDF Viewer · Bounding Box · Recharts Charts│
-└──────────────────────────────────────┬──────────────────────────────────────┘
-                                       │ HTTP / SSE / REST / Cookies
-┌──────────────────────────────────────▼──────────────────────────────────────┐
-│                          FolioQ API (Node.js 20+ Express)                   │
-│   Auth Controller · Upload · Collection · Document · Ingestion · Chat / SSE  │
-└──────────────┬───────────────────────┬───────────────────────┬──────────────┘
-               │                       │                       │
-       BullMQ  │             Mongoose  │ Atlas Vector + BM25   │ Multi-Provider
-┌──────────────▼─────────────┐ ┌───────▼────────────────┐ ┌────▼──────────────┐
-│  Async Ingestion Worker    │ │   MongoDB Atlas DB     │ │  LLM & Embeddings │
-│  - 150-200 DPI Page Render │ │   - Collections        │ │  - Anthropic / CL │
-│  - Native pdfjs Extraction │ │   - Documents & Pages  │ │  - Gemini 2.5 Fl  │
-│  - Vision Page Parsing     │ │   - Chunks (1024-dim)  │ │  - Groq / OpenAI  │
-│  - Cross-Page Stitching    │ │   - Threads & Messages │ │  - Cohere Embed   │
-│  - Semantic Element Chunk  │ │   - Users (Secure Auth)│ │  - Tesseract OCR  │
-└────────────────────────────┘ └────────────────────────┘ └───────────────────┘
-```
 
 ---
 
