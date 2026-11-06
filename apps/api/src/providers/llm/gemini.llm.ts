@@ -3,22 +3,19 @@ import { ILLMProvider, LLMMessage, VisionImage } from './llm.interface.js';
 import { env } from '../../lib/env.js';
 import { logger } from '../../lib/logger.js';
 
-export class OpenAIProvider implements ILLMProvider {
+export class GeminiProvider implements ILLMProvider {
   private client: OpenAI;
   private model: string;
 
   constructor() {
-    const isGemini = !!env.GEMINI_API_KEY && !env.OPENAI_API_KEY;
-    const apiKey = isGemini ? env.GEMINI_API_KEY : (env.OPENAI_API_KEY || env.GEMINI_API_KEY || '');
-    const baseURL = isGemini
-      ? (env.GEMINI_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta/openai')
-      : (env.OPENAI_BASE_URL || undefined);
+    const apiKey = env.GEMINI_API_KEY || '';
+    const baseURL = env.GEMINI_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta/openai';
 
     this.client = new OpenAI({
       apiKey,
       baseURL,
     });
-    this.model = env.LLM_MODEL || (isGemini ? 'gemini-2.5-flash' : 'gpt-4o');
+    this.model = env.GEMINI_MODEL || env.LLM_MODEL || 'gemini-3.5-flash-lite';
   }
 
   async generateStructured<T>(
@@ -62,12 +59,12 @@ export class OpenAIProvider implements ILLMProvider {
         return JSON.parse(rawText) as T;
       } catch (err: any) {
         lastError = err;
-        logger.warn({ attempt, error: err.message }, 'OpenAI structured parse retry');
+        logger.warn({ attempt, error: err.message }, 'Gemini structured parse retry');
         await new Promise((r) => setTimeout(r, 1000 * Math.pow(2, attempt)));
       }
     }
 
-    throw lastError || new Error('Failed to generate structured output from OpenAI');
+    throw lastError || new Error('Failed to generate structured output from Gemini');
   }
 
   async *streamChat(
@@ -75,7 +72,7 @@ export class OpenAIProvider implements ILLMProvider {
     systemPrompt: string,
     images?: VisionImage[]
   ): AsyncIterable<string> {
-    const openAIMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+    const geminiMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [
       { role: 'system', content: systemPrompt },
     ];
 
@@ -94,9 +91,9 @@ export class OpenAIProvider implements ILLMProvider {
           });
         }
         parts.push({ type: 'text', text: msg.content });
-        openAIMessages.push({ role: 'user', content: parts });
+        geminiMessages.push({ role: 'user', content: parts });
       } else {
-        openAIMessages.push({
+        geminiMessages.push({
           role: msg.role === 'assistant' ? 'assistant' : 'user',
           content: msg.content,
         });
@@ -105,7 +102,7 @@ export class OpenAIProvider implements ILLMProvider {
 
     const stream = await this.client.chat.completions.create({
       model: this.model,
-      messages: openAIMessages,
+      messages: geminiMessages,
       stream: true,
     });
 
@@ -117,4 +114,3 @@ export class OpenAIProvider implements ILLMProvider {
     }
   }
 }
-

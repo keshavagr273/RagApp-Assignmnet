@@ -19,17 +19,22 @@ const EnvSchema = z.object({
   UPLOAD_DIR: z.string().default('./uploads'),
   MAX_FILE_SIZE_MB: z.coerce.number().default(50),
 
-  // LLM - optional, stubs used if absent
-  ANTHROPIC_API_KEY: z.string().optional(),
+  // LLM Providers (Gemini for multimodal vision, Groq for ultra-fast reasoning)
+  GEMINI_API_KEY: z.string().optional(),
+  GEMINI_BASE_URL: z.string().default('https://generativelanguage.googleapis.com/v1beta/openai'),
+  GEMINI_MODEL: z.string().default('gemini-3.5-flash-lite'),
+
+  GROQ_API_KEY: z.string().optional(),
+  GROQ_BASE_URL: z.string().default('https://api.groq.com/openai/v1'),
+  GROQ_MODEL: z.string().default('openai/gpt-oss-120b'),
+
+  // Backwards compatibility env alias
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_BASE_URL: z.string().optional(),
-  GEMINI_API_KEY: z.string().optional(),
-  GEMINI_BASE_URL: z.string().optional(),
-  LLM_MODEL: z.string().default('gemini-2.5-flash'),
-  LLM_VISION_MODEL: z.string().default('gemini-2.5-flash'),
+  LLM_MODEL: z.string().optional(),
+  LLM_VISION_MODEL: z.string().optional(),
 
-  // Embeddings - optional
-  VOYAGE_API_KEY: z.string().optional(),
+  // Embeddings (Cohere 1024-dim dense vectors)
   COHERE_API_KEY: z.string().optional(),
   EMBED_MODEL: z.string().default('embed-english-v3.0'),
   EMBED_DIMENSIONS: z.coerce.number().default(1024),

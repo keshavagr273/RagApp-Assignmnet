@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { getLLMProvider } from '../providers/llm/index.js';
+import { getVisionLLMProvider } from '../providers/llm/index.js';
 import { RenderedPage } from './stage1-render.js';
 import { NativePageExtract } from './stage2-native.js';
 import { env } from '../lib/env.js';
@@ -49,15 +49,18 @@ export const TableZod = z.object({
   type: z.literal('table'),
   caption: z.string().optional(),
   units: z.string().optional(),
-  headers: z.array(z.array(z.string())),
-  rows: z.array(z.array(z.string())),
-  markdown: z.string(),
+  headers: z.union([
+    z.array(z.string()),
+    z.array(z.array(z.string())).transform((arr) => arr.flat()),
+  ]),
+  rows: z.array(z.array(z.union([z.string(), z.number()]).transform((v) => String(v)))),
+  markdown: z.string().optional().default(''),
   bbox: BBoxZod,
 });
 
 export const DataPointZod = z.object({
   x: z.union([z.string(), z.number()]),
-  y: z.number(),
+  y: z.coerce.number(),
   label: z.string().optional(),
 });
 
@@ -172,7 +175,7 @@ export async function stage3VisionPageUnderstanding(
   nativePages: NativePageExtract[]
 ): Promise<ProcessedVisionPage[]> {
   logger.info({ documentId, totalPages: renderedPages.length }, 'Stage 3: Vision-based page understanding');
-  const llm = getLLMProvider();
+  const llm = getVisionLLMProvider();
   const concurrency = env.VISION_PAGE_CONCURRENCY || 3;
   const results: ProcessedVisionPage[] = new Array(renderedPages.length);
 

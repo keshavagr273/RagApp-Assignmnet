@@ -511,3 +511,4 @@ AppShell (3-Pane Resizable Grid)
   <strong>FolioQ Architecture Blueprint</strong><br/>
   <em>Designed for Deterministic Parsing Precision, Visual Grounding, and Production Reliability.</em>
 </p>
+

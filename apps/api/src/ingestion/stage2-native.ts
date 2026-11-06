@@ -32,88 +32,91 @@ export async function stage2NativeExtraction(
 
   const pdfDoc = await loadingTask.promise;
   const numPages = pdfDoc.numPages;
-  const extractedPages: NativePageExtract[] = [];
+  const pageNumbers = Array.from({ length: numPages }, (_, i) => i + 1);
 
-  for (let pageNum = 1; pageNum <= numPages; pageNum++) {
-    const page = await pdfDoc.getPage(pageNum);
-    const textContent = await page.getTextContent();
+  const extractedPages = await Promise.all(
+    pageNumbers.map(async (pageNum) => {
+      const page = await pdfDoc.getPage(pageNum);
+      const textContent = await page.getTextContent();
 
-    const items: NativeTextItem[] = [];
-    let fullText = '';
+      const items: NativeTextItem[] = [];
+      let fullText = '';
 
-    for (const item of textContent.items) {
-      if (!('str' in item) || !item.str) continue;
+      for (const item of textContent.items) {
+        if (!('str' in item) || !item.str) continue;
 
-      const tx = item.transform;
-      const x = tx[4];
-      const y = tx[5];
-      const fontSize = Math.hypot(tx[2], tx[3]) || item.height || 10;
+        const tx = item.transform;
+        const x = tx[4];
+        const y = tx[5];
+        const fontSize = Math.hypot(tx[2], tx[3]) || item.height || 10;
 
-      items.push({
-        text: item.str,
-        x: Math.round(x * 100) / 100,
-        y: Math.round(y * 100) / 100,
-        width: Math.round(item.width * 100) / 100,
-        height: Math.round(item.height * 100) / 100,
-        fontSize: Math.round(fontSize * 100) / 100,
-        fontName: item.fontName || '',
+        items.push({
+          text: item.str,
+          x: Math.round(x * 100) / 100,
+          y: Math.round(y * 100) / 100,
+          width: Math.round(item.width * 100) / 100,
+          height: Math.round(item.height * 100) / 100,
+          fontSize: Math.round(fontSize * 100) / 100,
+          fontName: item.fontName || '',
+        });
+      }
+
+      // Sort items into natural reading order:
+      items.sort((a, b) => {
+        if (Math.abs(b.y - a.y) > 4) {
+          return b.y - a.y; // Top to bottom
+        }
+        return a.x - b.x; // Left to right
       });
-    }
 
-    // Sort items into natural reading order:
-    // Group into horizontal lines with a Y tolerance (e.g. 4 points), then sort X left to right
-    items.sort((a, b) => {
-      if (Math.abs(b.y - a.y) > 4) {
-        return b.y - a.y; // Top to bottom (PDF Y is 0 at bottom)
+      // Reconstruct lines of text
+      const lines: string[] = [];
+      let currentLine: NativeTextItem[] = [];
+      let lastY = -1;
+
+      for (const it of items) {
+        if (lastY === -1 || Math.abs(it.y - lastY) <= 4) {
+          currentLine.push(it);
+          lastY = it.y;
+        } else {
+          lines.push(currentLine.map((c) => c.text).join(' '));
+          currentLine = [it];
+          lastY = it.y;
+        }
       }
-      return a.x - b.x; // Left to right
-    });
-
-    // Reconstruct lines of text
-    const lines: string[] = [];
-    let currentLine: NativeTextItem[] = [];
-    let lastY = -1;
-
-    for (const it of items) {
-      if (lastY === -1 || Math.abs(it.y - lastY) <= 4) {
-        currentLine.push(it);
-        lastY = it.y;
-      } else {
+      if (currentLine.length > 0) {
         lines.push(currentLine.map((c) => c.text).join(' '));
-        currentLine = [it];
-        lastY = it.y;
       }
-    }
-    if (currentLine.length > 0) {
-      lines.push(currentLine.map((c) => c.text).join(' '));
-    }
 
-    fullText = lines.join('\n').trim();
+      fullText = lines.join('\n').trim();
 
-    // Assess text layer quality
-    const charCount = fullText.length;
-    const alphanumericCount = (fullText.match(/[a-zA-Z0-9]/g) || []).length;
-    const alphanumericRatio = charCount > 0 ? alphanumericCount / charCount : 0;
+      // Assess text layer quality
+      const charCount = fullText.length;
+      const alphanumericCount = (fullText.match(/[a-zA-Z0-9]/g) || []).length;
+      const alphanumericRatio = charCount > 0 ? alphanumericCount / charCount : 0;
 
-    let textLayerQuality: 'good' | 'poor' | 'none' = 'good';
-    let needsOcr = false;
+      let textLayerQuality: 'good' | 'poor' | 'none' = 'good';
+      let needsOcr = false;
 
-    if (charCount < 15 || alphanumericCount < 10) {
-      textLayerQuality = 'none';
-      needsOcr = true;
-    } else if (charCount < 60 || alphanumericRatio < 0.4) {
-      textLayerQuality = 'poor';
-      needsOcr = true;
-    }
+      if (charCount < 15 || alphanumericCount < 10) {
+        textLayerQuality = 'none';
+        needsOcr = true;
+      } else if (charCount < 60 || alphanumericRatio < 0.4) {
+        textLayerQuality = 'poor';
+        needsOcr = true;
+      }
 
-    extractedPages.push({
-      pageNumber: pageNum,
-      textLayerQuality,
-      needsOcr,
-      rawText: fullText,
-      items,
-    });
-  }
+      return {
+        pageNumber: pageNum,
+        textLayerQuality,
+        needsOcr,
+        rawText: fullText,
+        items,
+      };
+    })
+  );
+
+  extractedPages.sort((a, b) => a.pageNumber - b.pageNumber);
 
   logger.info({ documentId, totalPages: numPages }, 'Stage 2 complete: Native extraction done');
   return extractedPages;
