@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+uploads/
+*.log
+.DS_Store
+eng.traineddata
+eval/eval-report.json
+.cache/
+coverage/

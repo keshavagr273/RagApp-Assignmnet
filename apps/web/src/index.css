@@ -1,0 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-paper: #F6F3EC;
+  --color-surface: #FFFFFF;
+  --color-ink: #1C1B19;
+  --color-muted: #6B665C;
+  --color-hairline: #DDD7CA;
+  --color-primary: #1F4D3A;
+  --color-secondary: #B4532A;
+  --color-highlight: #E3B04B;
+}
+
+.dark {
+  --color-paper: #141312;
+  --color-surface: #1D1C19;
+  --color-ink: #F2EFE9;
+  --color-muted: #9E998E;
+  --color-hairline: #2F2D29;
+  --color-primary: #3F7E62;
+  --color-secondary: #D9693B;
+  --color-highlight: #E3B04B;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom scrollbars with hairline aesthetic */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-hairline);
+  border-radius: 3px;
+}
+
+/* Flat opacity pulse animation for skeletons without gradient shimmer */
+@keyframes flatPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+.skeleton-pulse {
+  animation: flatPulse 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

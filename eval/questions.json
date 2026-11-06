@@ -1,0 +1,381 @@
+[
+  {
+    "id": "q01",
+    "document": "report-overview.pdf",
+    "category": "exact_lookup",
+    "question": "What is the monthly availability SLA for the Enterprise Tier?",
+    "expectedPage": 1,
+    "expectedAnswer": "99.99%",
+    "keyTokens": ["99.99%", "availability"]
+  },
+  {
+    "id": "q02",
+    "document": "report-overview.pdf",
+    "category": "exact_lookup",
+    "question": "What billing credit is provided if availability drops to 99.50%?",
+    "expectedPage": 1,
+    "expectedAnswer": "25% monthly billing credit",
+    "keyTokens": ["25%", "credit"]
+  },
+  {
+    "id": "q03",
+    "document": "report-overview.pdf",
+    "category": "exact_lookup",
+    "question": "What is the response SLA for Severity 1 (Critical) incidents?",
+    "expectedPage": 1,
+    "expectedAnswer": "15 minutes",
+    "keyTokens": ["15 minutes", "Severity 1"]
+  },
+  {
+    "id": "q04",
+    "document": "report-overview.pdf",
+    "category": "exact_lookup",
+    "question": "How many transactions did the platform process during FY2024?",
+    "expectedPage": 1,
+    "expectedAnswer": "14.8 billion transactions",
+    "keyTokens": ["14.8 billion"]
+  },
+  {
+    "id": "q05",
+    "document": "report-overview.pdf",
+    "category": "exact_lookup",
+    "question": "What was the sustained average latency for read operations?",
+    "expectedPage": 1,
+    "expectedAnswer": "14.2 milliseconds",
+    "keyTokens": ["14.2", "milliseconds"]
+  },
+  {
+    "id": "q06",
+    "document": "report-overview.pdf",
+    "category": "exact_lookup",
+    "question": "Which encryption algorithm is used for customer documents at rest?",
+    "expectedPage": 2,
+    "expectedAnswer": "AES-256-GCM",
+    "keyTokens": ["AES-256-GCM"]
+  },
+  {
+    "id": "q07",
+    "document": "report-overview.pdf",
+    "category": "exact_lookup",
+    "question": "How long are audit logs retained for SOC 2 and ISO compliance?",
+    "expectedPage": 2,
+    "expectedAnswer": "Minimum of 7 years",
+    "keyTokens": ["7 years"]
+  },
+  {
+    "id": "q08",
+    "document": "report-overview.pdf",
+    "category": "exact_lookup",
+    "question": "Within how many hours are GDPR Chapter III deletion requests executed?",
+    "expectedPage": 2,
+    "expectedAnswer": "72 hours",
+    "keyTokens": ["72 hours"]
+  },
+  {
+    "id": "q09",
+    "document": "report-overview.pdf",
+    "category": "exact_lookup",
+    "question": "What are the formal RPO and RTO specifications for disaster recovery?",
+    "expectedPage": 2,
+    "expectedAnswer": "RPO is 15 minutes; RTO is 120 minutes",
+    "keyTokens": ["15 minutes", "120 minutes"]
+  },
+  {
+    "id": "q10",
+    "document": "report-overview.pdf",
+    "category": "exact_lookup",
+    "question": "What was the failover duration achieved during the October 14, 2024 disaster simulation?",
+    "expectedPage": 2,
+    "expectedAnswer": "47 minutes",
+    "keyTokens": ["47 minutes"]
+  },
+  {
+    "id": "q11",
+    "document": "financial-q3.pdf",
+    "category": "exact_lookup",
+    "question": "What was the total revenue reported for Q3 FY2024?",
+    "expectedPage": 1,
+    "expectedAnswer": "$370.9 million",
+    "keyTokens": ["370.9"]
+  },
+  {
+    "id": "q12",
+    "document": "financial-q3.pdf",
+    "category": "exact_lookup",
+    "question": "What was the subscription revenue for Q3 FY2024 and how much did it grow YoY?",
+    "expectedPage": 1,
+    "expectedAnswer": "$342.5 million, growing 29.2% YoY",
+    "keyTokens": ["342.5", "29.2%"]
+  },
+  {
+    "id": "q13",
+    "document": "financial-q3.pdf",
+    "category": "exact_lookup",
+    "question": "What was the Gross Profit in Q3 FY2024?",
+    "expectedPage": 1,
+    "expectedAnswer": "$280.3 million",
+    "keyTokens": ["280.3"]
+  },
+  {
+    "id": "q14",
+    "document": "financial-q3.pdf",
+    "category": "exact_lookup",
+    "question": "What was the gross margin percentage in Q3 FY2024?",
+    "expectedPage": 1,
+    "expectedAnswer": "75.6%",
+    "keyTokens": ["75.6%"]
+  },
+  {
+    "id": "q15",
+    "document": "financial-q3.pdf",
+    "category": "exact_lookup",
+    "question": "How much was spent on Sales & Marketing in Q3 FY2024?",
+    "expectedPage": 1,
+    "expectedAnswer": "$105.8 million",
+    "keyTokens": ["105.8"]
+  },
+  {
+    "id": "q16",
+    "document": "financial-q3.pdf",
+    "category": "exact_lookup",
+    "question": "What was the operating income and operating margin in Q3 FY2024?",
+    "expectedPage": 1,
+    "expectedAnswer": "Operating income was $57.9 million with an operating margin of 15.6%",
+    "keyTokens": ["57.9", "15.6%"]
+  },
+  {
+    "id": "q17",
+    "document": "financial-q3.pdf",
+    "category": "exact_lookup",
+    "question": "What was the diluted earnings per share (EPS) in Q3 FY2024?",
+    "expectedPage": 1,
+    "expectedAnswer": "$0.42 per share",
+    "keyTokens": ["0.42"]
+  },
+  {
+    "id": "q18",
+    "document": "financial-q3.pdf",
+    "category": "exact_lookup",
+    "question": "What percentage of total revenue came from North America in Q3 FY2024?",
+    "expectedPage": 1,
+    "expectedAnswer": "60.0% ($222.5 million)",
+    "keyTokens": ["60.0%", "222.5"]
+  },
+  {
+    "id": "q19",
+    "document": "financial-q3.pdf",
+    "category": "exact_lookup",
+    "question": "How much revenue was generated from EMEA in Q3 FY2024?",
+    "expectedPage": 1,
+    "expectedAnswer": "$96.4 million (26.0%)",
+    "keyTokens": ["96.4", "26.0%"]
+  },
+  {
+    "id": "q20",
+    "document": "financial-q3.pdf",
+    "category": "table_calculation",
+    "question": "What is the difference between Q3 FY2024 Total Revenue ($370.9M) and Total Operating Expenses ($222.4M)?",
+    "expectedPage": 1,
+    "expectedAnswer": "$148.5 million",
+    "keyTokens": ["148.5"]
+  },
+  {
+    "id": "q21",
+    "document": "financial-q3.pdf",
+    "category": "table_calculation",
+    "question": "Calculate the combined spending on R&D ($84.2M) and Sales & Marketing ($105.8M) for Q3 FY2024.",
+    "expectedPage": 1,
+    "expectedAnswer": "$190.0 million",
+    "keyTokens": ["190"]
+  },
+  {
+    "id": "q22",
+    "document": "financial-q3.pdf",
+    "category": "table_calculation",
+    "question": "How much higher was Net Income in Q3 FY2024 ($46.3M) compared to Q3 FY2023 ($27.1M)?",
+    "expectedPage": 1,
+    "expectedAnswer": "$19.2 million increase (+70.8%)",
+    "keyTokens": ["19.2"]
+  },
+  {
+    "id": "q23",
+    "document": "market-metrics.pdf",
+    "category": "chart_reading",
+    "question": "According to the ARR bar chart in Figure 1, what was the ARR in 2020?",
+    "expectedPage": 1,
+    "expectedAnswer": "$320M",
+    "keyTokens": ["320"]
+  },
+  {
+    "id": "q24",
+    "document": "market-metrics.pdf",
+    "category": "chart_reading",
+    "question": "What was the ARR recorded in 2024 according to Figure 1?",
+    "expectedPage": 1,
+    "expectedAnswer": "$1,480M",
+    "keyTokens": ["1,480", "1480"]
+  },
+  {
+    "id": "q25",
+    "document": "market-metrics.pdf",
+    "category": "chart_reading",
+    "question": "What is the 4-year Compound Annual Growth Rate (CAGR) stated for ARR from 2020 to 2024?",
+    "expectedPage": 1,
+    "expectedAnswer": "46.7%",
+    "keyTokens": ["46.7%"]
+  },
+  {
+    "id": "q26",
+    "document": "market-metrics.pdf",
+    "category": "chart_reading",
+    "question": "In Figure 2, what percentage of the customer base has Net Revenue Retention (NRR) greater than 130%?",
+    "expectedPage": 1,
+    "expectedAnswer": "45%",
+    "keyTokens": ["45%"]
+  },
+  {
+    "id": "q27",
+    "document": "market-metrics.pdf",
+    "category": "chart_reading",
+    "question": "In Figure 2, what proportion of customers have NRR below 100%?",
+    "expectedPage": 1,
+    "expectedAnswer": "5%",
+    "keyTokens": ["5%"]
+  },
+  {
+    "id": "q28",
+    "document": "market-metrics.pdf",
+    "category": "chart_reading",
+    "question": "What is the overall Net Revenue Retention across enterprise accounts?",
+    "expectedPage": 1,
+    "expectedAnswer": "122%",
+    "keyTokens": ["122%"]
+  },
+  {
+    "id": "q29",
+    "document": "scanned-audit.pdf",
+    "category": "scanned_ocr",
+    "question": "Which firm conducted the independent cybersecurity audit?",
+    "expectedPage": 1,
+    "expectedAnswer": "Apex Security Assurance LLP",
+    "keyTokens": ["Apex Security Assurance"]
+  },
+  {
+    "id": "q30",
+    "document": "scanned-audit.pdf",
+    "category": "scanned_ocr",
+    "question": "What was the overall security penetration testing resistance rating out of 100?",
+    "expectedPage": 1,
+    "expectedAnswer": "98.4 out of 100",
+    "keyTokens": ["98.4"]
+  },
+  {
+    "id": "q31",
+    "document": "scanned-audit.pdf",
+    "category": "scanned_ocr",
+    "question": "How often are master secret keys rotated according to the audit findings?",
+    "expectedPage": 1,
+    "expectedAnswer": "Every 90 days",
+    "keyTokens": ["90 days"]
+  },
+  {
+    "id": "q32",
+    "document": "scanned-audit.pdf",
+    "category": "scanned_ocr",
+    "question": "Who signed the audit certificate as Lead Auditor?",
+    "expectedPage": 1,
+    "expectedAnswer": "Robert Vance, CISSP, CISA",
+    "keyTokens": ["Robert Vance"]
+  },
+  {
+    "id": "q33",
+    "document": "continuing-inventory.pdf",
+    "category": "multi_page_table",
+    "question": "What are the RAM and storage specifications for SRV-101 in us-east-1?",
+    "expectedPage": 1,
+    "expectedAnswer": "512 GB / 15.3 TB NVMe",
+    "keyTokens": ["512 GB", "15.3 TB"]
+  },
+  {
+    "id": "q34",
+    "document": "continuing-inventory.pdf",
+    "category": "multi_page_table",
+    "question": "What server node is listed with Maintenance status on Page 1?",
+    "expectedPage": 1,
+    "expectedAnswer": "SRV-108",
+    "keyTokens": ["SRV-108"]
+  },
+  {
+    "id": "q35",
+    "document": "continuing-inventory.pdf",
+    "category": "multi_page_table",
+    "question": "On the continued table on Page 2, what model and GPU spec does SRV-113 have?",
+    "expectedPage": 2,
+    "expectedAnswer": "Supermicro AS-2124GQ with 2048 GB RAM and 8x A100 GPU",
+    "keyTokens": ["Supermicro", "A100", "SRV-113"]
+  },
+  {
+    "id": "q36",
+    "document": "continuing-inventory.pdf",
+    "category": "multi_page_table",
+    "question": "Which storage nodes are NetApp AFF A400 with 250 TB SAN?",
+    "expectedPage": 2,
+    "expectedAnswer": "SRV-119 (us-east-1) and SRV-120 (us-west-2)",
+    "keyTokens": ["SRV-119", "SRV-120", "250 TB"]
+  },
+  {
+    "id": "q37",
+    "document": "continuing-inventory.pdf",
+    "category": "multi_page_table",
+    "question": "What is the total active fleet size stated at the bottom of the inventory table?",
+    "expectedPage": 2,
+    "expectedAnswer": "22 physical host nodes across 4 global regions",
+    "keyTokens": ["22", "host nodes"]
+  },
+  {
+    "id": "q38",
+    "document": "cross_document",
+    "category": "cross_document",
+    "question": "Compare the disaster recovery RPO window from the architecture report with the key rotation frequency in the audit certificate.",
+    "expectedPage": 2,
+    "expectedAnswer": "Disaster recovery RPO is 15 minutes, whereas master key rotation frequency is every 90 days.",
+    "keyTokens": ["15 minutes", "90 days"]
+  },
+  {
+    "id": "q39",
+    "document": "negative_case",
+    "category": "not_in_document",
+    "question": "What is the company's employee headcount in the Tokyo sales office?",
+    "expectedPage": -1,
+    "expectedAnswer": "I cannot find this information in the provided documents.",
+    "keyTokens": ["cannot find", "not found", "not provided", "no information"]
+  },
+  {
+    "id": "q40",
+    "document": "negative_case",
+    "category": "not_in_document",
+    "question": "What are the pricing tiers for the individual consumer plan?",
+    "expectedPage": -1,
+    "expectedAnswer": "I cannot find this information in the provided documents.",
+    "keyTokens": ["cannot find", "not found", "not provided", "no information"]
+  },
+  {
+    "id": "q41",
+    "document": "negative_case",
+    "category": "not_in_document",
+    "question": "What was the date of the CEO's keynote speech in Berlin?",
+    "expectedPage": -1,
+    "expectedAnswer": "I cannot find this information in the provided documents.",
+    "keyTokens": ["cannot find", "not found", "not provided", "no information"]
+  },
+  {
+    "id": "q42",
+    "document": "negative_case",
+    "category": "not_in_document",
+    "question": "What stock exchange is the company listed on and what is its ticker symbol?",
+    "expectedPage": -1,
+    "expectedAnswer": "I cannot find this information in the provided documents.",
+    "keyTokens": ["cannot find", "not found", "not provided", "no information"]
+  }
+]
+

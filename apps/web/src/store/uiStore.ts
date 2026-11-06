@@ -1,0 +1,71 @@
+import { create } from 'zustand';
+import { Citation } from '../services/api';
+
+interface UIState {
+  activeCollectionId: string | null;
+  activeThreadId: string | null;
+  activeDocumentId: string | null;
+  selectedCitation: Citation | null;
+  viewerOpen: boolean;
+  viewerPage: number;
+  darkMode: boolean;
+  commandPaletteOpen: boolean;
+  uploadModalOpen: boolean;
+  elementInspectorDocId: string | null;
+
+  setActiveCollection: (id: string | null) => void;
+  setActiveThread: (id: string | null) => void;
+  setActiveDocument: (id: string | null) => void;
+  openCitationInViewer: (citation: Citation) => void;
+  setViewerOpen: (open: boolean) => void;
+  setViewerPage: (page: number) => void;
+  toggleDarkMode: () => void;
+  setCommandPaletteOpen: (open: boolean) => void;
+  setUploadModalOpen: (open: boolean) => void;
+  setElementInspectorDocId: (id: string | null) => void;
+}
+
+export const useUIStore = create<UIState>((set) => ({
+  activeCollectionId: null,
+  activeThreadId: null,
+  activeDocumentId: null,
+  selectedCitation: null,
+  viewerOpen: false,
+  viewerPage: 1,
+  darkMode: false,
+  commandPaletteOpen: false,
+  uploadModalOpen: false,
+  elementInspectorDocId: null,
+
+  setActiveCollection: (id) => set({ activeCollectionId: id, activeThreadId: null }),
+  setActiveThread: (id) => set({ activeThreadId: id }),
+  setActiveDocument: (id) => set({ activeDocumentId: id }),
+
+  openCitationInViewer: (citation) => {
+    set({
+      selectedCitation: citation,
+      activeDocumentId: citation.documentId,
+      viewerPage: citation.page,
+      viewerOpen: true,
+    });
+  },
+
+  setViewerOpen: (open) => set({ viewerOpen: open }),
+  setViewerPage: (page) => set({ viewerPage: page }),
+
+  toggleDarkMode: () =>
+    set((state) => {
+      const next = !state.darkMode;
+      if (next) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      return { darkMode: next };
+    }),
+
+  setCommandPaletteOpen: (open) => set({ commandPaletteOpen: open }),
+  setUploadModalOpen: (open) => set({ uploadModalOpen: open }),
+  setElementInspectorDocId: (id) => set({ elementInspectorDocId: id }),
+}));
+
