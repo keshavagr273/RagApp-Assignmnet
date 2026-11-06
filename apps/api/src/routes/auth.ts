@@ -89,11 +89,22 @@ router.post('/refresh', async (req: Request, res: Response) => {
   res.json({ user: { id: user._id, email: user.email, name: user.name } });
 });
 
-router.get('/me', requireAuth, async (req: Request, res: Response) => {
-  const userId = (req as AuthRequest).userId;
-  const user = await User.findById(userId).select('-passwordHash');
-  if (!user) throw new AppError(404, 'User not found');
-  res.json({ user: { id: user._id, email: user.email, name: user.name } });
+router.get('/me', async (req: Request, res: Response) => {
+  const token = req.cookies?.accessToken as string | undefined;
+  if (!token) {
+    return res.json({ user: null });
+  }
+
+  try {
+    const payload = jwt.verify(token, env.JWT_ACCESS_SECRET) as { userId: string };
+    const user = await User.findById(payload.userId).select('-passwordHash');
+    if (!user) {
+      return res.json({ user: null });
+    }
+    return res.json({ user: { id: user._id, email: user.email, name: user.name } });
+  } catch (_err) {
+    return res.json({ user: null });
+  }
 });
 
 export default router;
