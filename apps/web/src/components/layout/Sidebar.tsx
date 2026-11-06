@@ -186,6 +186,16 @@ export const Sidebar: React.FC = () => {
           )}
 
           <div className="space-y-1">
+            {collections.length === 0 && !isCreatingCollection && (
+              <button
+                onClick={() => setIsCreatingCollection(true)}
+                className="w-full text-left px-2.5 py-2 rounded text-xs border border-dashed border-hairline text-muted hover:text-ink hover:border-primary/40 flex items-center gap-1.5 transition-colors font-mono"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Create a collection</span>
+              </button>
+            )}
+
             {collections.map((col) => (
               <button
                 key={col._id}

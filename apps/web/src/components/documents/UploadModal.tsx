@@ -18,20 +18,54 @@ export const UploadModal: React.FC = () => {
   const uploadModalOpen = useUIStore((s) => s.uploadModalOpen);
   const setUploadModalOpen = useUIStore((s) => s.setUploadModalOpen);
   const activeCollectionId = useUIStore((s) => s.activeCollectionId);
+  const setActiveCollection = useUIStore((s) => s.setActiveCollection);
 
   const [filesToUpload, setFilesToUpload] = useState<FileUploadProgress[]>([]);
+  const [isResolving, setIsResolving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!uploadModalOpen) return null;
 
   const handleFilesSelected = async (fileList: FileList | null) => {
-    if (!fileList || fileList.length === 0 || !activeCollectionId) return;
+    if (!fileList || fileList.length === 0) return;
 
-    const files = Array.from(fileList).filter((f) => f.type === 'application/pdf');
-    if (files.length === 0) return;
+    const files = Array.from(fileList).filter(
+      (f) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf')
+    );
+    if (files.length === 0) {
+      alert('Please select a valid PDF file.');
+      return;
+    }
 
-    const initialRows: FileUploadProgress[] = files.map((f) => ({
-      id: `temp-${f.name}-${Date.now()}`,
+    setIsResolving(true);
+    let targetCollectionId = activeCollectionId;
+
+    // If no collection is currently active, resolve an existing one or auto-create a default collection
+    if (!targetCollectionId) {
+      try {
+        const colRes = await api.get('/collections');
+        if (colRes.data.collections && colRes.data.collections.length > 0) {
+          targetCollectionId = colRes.data.collections[0]._id;
+        } else {
+          const createRes = await api.post('/collections', {
+            name: 'General Documents',
+            description: 'Default document workspace',
+          });
+          targetCollectionId = createRes.data.collection._id;
+        }
+        setActiveCollection(targetCollectionId);
+        queryClient.invalidateQueries({ queryKey: ['collections'] });
+      } catch (err: any) {
+        console.error('Failed to initialize collection', err);
+        setIsResolving(false);
+        alert('Could not initialize collection: ' + (err.response?.data?.error || err.message));
+        return;
+      }
+    }
+    setIsResolving(false);
+
+    const initialRows: FileUploadProgress[] = files.map((f, i) => ({
+      id: `temp-${Date.now()}-${i}`,
       name: f.name,
       size: f.size,
       status: 'queued',
@@ -43,33 +77,42 @@ export const UploadModal: React.FC = () => {
     files.forEach((f) => formData.append('files', f));
 
     try {
-      const res = await api.post(`/collections/${activeCollectionId}/documents`, formData, {
+      const res = await api.post(`/collections/${targetCollectionId}/documents`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
       const uploadedDocs = res.data.documents || [];
 
+      // Link real document IDs returned by server
+      setFilesToUpload(
+        uploadedDocs.map((doc: any) => ({
+          id: doc._id,
+          name: doc.originalName || doc.filename,
+          size: doc.sizeBytes || 0,
+          status: doc.status || 'queued',
+          pageCount: doc.pageCount,
+        }))
+      );
+
       // Start SSE progress tracking for each document
       uploadedDocs.forEach((doc: any) => {
-        listenToProgress(doc._id);
+        listenToProgress(doc._id, targetCollectionId!);
       });
 
-      queryClient.invalidateQueries({ queryKey: ['documents', activeCollectionId] });
+      queryClient.invalidateQueries({ queryKey: ['documents', targetCollectionId] });
       queryClient.invalidateQueries({ queryKey: ['collections'] });
     } catch (err: any) {
       setFilesToUpload((prev) =>
         prev.map((p) => ({
           ...p,
           status: 'failed',
-          error: err.response?.data?.error || 'Upload failed',
+          error: err.response?.data?.error || err.message || 'Upload failed',
         }))
       );
-    } finally {
-      // Finished initiating
     }
   };
 
-  const listenToProgress = (docId: string) => {
+  const listenToProgress = (docId: string, collectionId?: string) => {
     const sse = new EventSource(`/api/documents/${docId}/status`);
 
     sse.onmessage = (event) => {
@@ -77,7 +120,7 @@ export const UploadModal: React.FC = () => {
         const data = JSON.parse(event.data);
         setFilesToUpload((prev) =>
           prev.map((item) =>
-            item.id.includes(docId) || item.status !== 'ready'
+            item.id === docId
               ? {
                   ...item,
                   status: data.status,
@@ -90,7 +133,12 @@ export const UploadModal: React.FC = () => {
 
         if (data.status === 'ready' || data.status === 'failed') {
           sse.close();
-          queryClient.invalidateQueries({ queryKey: ['documents', activeCollectionId] });
+          const targetId = collectionId || activeCollectionId;
+          if (targetId) {
+            queryClient.invalidateQueries({ queryKey: ['documents', targetId] });
+          }
+          queryClient.invalidateQueries({ queryKey: ['documents'] });
+          queryClient.invalidateQueries({ queryKey: ['collections'] });
         }
       } catch (_e) {
         // Parse error
@@ -105,7 +153,7 @@ export const UploadModal: React.FC = () => {
   const handleRetry = async (docId: string) => {
     try {
       await api.post(`/documents/${docId}/reprocess`);
-      listenToProgress(docId);
+      listenToProgress(docId, activeCollectionId || undefined);
     } catch (err: any) {
       console.error(err);
     }
@@ -139,9 +187,18 @@ export const UploadModal: React.FC = () => {
             }}
             className="border-2 border-dashed border-hairline hover:border-primary/60 rounded-lg p-8 text-center cursor-pointer bg-paper/30 hover:bg-paper/60 transition-colors"
           >
-            <UploadCloud className="w-10 h-10 text-muted mx-auto mb-3" />
-            <p className="text-sm font-medium text-ink">Click to upload or drag and drop PDFs here</p>
-            <p className="text-xs text-muted mt-1 font-mono">Accepts mixed text, tables, charts, and diagrams</p>
+            {isResolving ? (
+              <div className="py-4">
+                <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin mx-auto mb-2" />
+                <p className="text-sm font-medium text-ink font-mono">Initializing workspace collection...</p>
+              </div>
+            ) : (
+              <>
+                <UploadCloud className="w-10 h-10 text-muted mx-auto mb-3" />
+                <p className="text-sm font-medium text-ink">Click to upload or drag and drop PDFs here</p>
+                <p className="text-xs text-muted mt-1 font-mono">Accepts mixed text, tables, charts, and diagrams</p>
+              </>
+            )}
             <input
               ref={fileInputRef}
               type="file"
